@@ -1,0 +1,211 @@
+Some(
+    DictRef {
+        flags: Flags(0x0),
+        entries: {
+            "object.serial": "47",
+            "factory.id": "15",
+            "client.id": "43",
+            "device.api": "alsa",
+            "device.description":"AG06/AG03",
+            "device.name": "alsa_card.usb-Yamaha_Corporation_AG06_AG03-00",
+            "device.nick": "AG06/AG03",
+            "media.class": "Audio/Device",
+            "object.path": "alsa:acp:AG06AG03"
+        }
+    }
+)
+
+Some(
+    DictRef {
+        flags: Flags(0x0),
+        entries: {
+            "object.serial": "51",
+            "object.path": "alsa:seq:default:client_24:playback_0",
+            "format.dsp": "8 bit raw midi",
+            "node.id": "44",
+            "port.id": "1",
+            "port.name": "AG06/AG03: MIDI 1 (playback)",
+            "port.direction": "in",
+            "port.physical": "true",
+            "port.terminal":"true",
+            "port.alias": "AG06/AG03:AG06/AG03 MIDI 1",
+            "port.group": "client_24"
+        }
+    }
+)
+
+Some(
+    DictRef {
+        flags: Flags(0x0),
+        entries: {
+            "object.serial": "53",
+            "object.path": "alsa:seq:default:client_24:capture_0",
+            "format.dsp": "8 bit raw midi",
+            "node.id": "44",
+            "port.id": "1",
+            "port.name": "AG06/AG03: MIDI 1 (capture)",
+            "port.direction": "out",
+            "port.physical": "true",
+            "port.terminal":"true",
+            "port.alias": "AG06/AG03:AG06/AG03 MIDI 1",
+            "port.group": "client_24"
+        }
+    }
+)
+
+Some(
+    DictRef {
+        flags: Flags(0x0),
+        entries: {
+            "object.serial": "58",
+            "object.path": "alsa:acp:AG06AG03:4:playback",
+            "factory.id": "19",
+            "client.id": "43",
+            "device.id": "47",
+            "priority.session": "1109",
+            "priority.driver": "1109",
+            "node.description": "AG06/AG03 Analog Stereo",
+            "node.name": "alsa_output.usb-Yamaha_Corporation_AG06_AG03-00.analog-stereo",
+            "node.nick": "AG06/AG03",
+            "media.class": "Audio/Sink"
+        }
+    }
+)
+
+Some(
+    DictRef {
+        flags: Flags(0x0),
+        entries: {
+            "object.serial": "59",
+            "object.path": "alsa:acp:AG06AG03:0:capture",
+            "factory.id": "19",
+            "client.id": "43",
+            "device.id": "47",
+            "priority.session": "2109",
+            "priority.driver": "2109",
+            "node.description": "AG06/AG03 Analog Stereo",
+            "node.name": "alsa_input.usb-Yamaha_Corporation_AG06_AG03-00.analog-stereo",
+            "node.nick": "AG06/AG03",
+            "media.class": "Audio/Source"
+        }
+    }
+)
+
+Some(
+    DictRef {
+        flags: Flags(0x0),
+        entries: {
+            "object.serial": "61",
+            "object.path": "alsa:acp:AG06AG03:4:playback:playback_0",
+            "format.dsp": "32 bit float mono audio",
+            "node.id": "53",
+            "audio.channel": "FL",
+            "port.id": "0",
+            "port.name": "playback_FL",
+            "port.direction": "in",
+            "port.physical": "true",
+            "port.terminal": "true",
+            "port.alias": "AG06/AG03:playback_FL",
+            "port.group": "playback"
+        }
+    }
+)
+
+Some(
+    DictRef {
+        flags: Flags(0x0),
+        entries: {
+            "object.serial": "62",
+            "object.path": "alsa:acp:AG06AG03:4:playback:playback_1",
+            "format.dsp": "32 bit float mono audio",
+            "node.id": "53",
+            "audio.channel": "FR",
+            "port.id": "1",
+            "port.name": "playback_FR",
+            "port.direction": "in",
+            "port.physical": "true",
+            "port.terminal": "true",
+            "port.alias": "AG06/AG03:playback_FR",
+            "port.group": "playback"
+        }
+    }
+)
+
+Some(
+    DictRef {
+        flags: Flags(0x0),
+        entries: {
+            "object.serial": "63",
+            "object.path": "alsa:acp:AG06AG03:4:playback:monitor_0",
+            "format.dsp": "32 bit float mono audio",
+            "node.id": "53",
+            "audio.channel": "FL",
+            "port.id": "0",
+            "port.name": "monitor_FL",
+            "port.direction": "out",
+            "port.monitor": "true",
+            "port.alias": "AG06/AG03:monitor_FL",
+            "port.group": "playback"
+        }
+    }
+)
+
+Some(
+    DictRef {
+        flags: Flags(0x0),
+        entries: {
+            "object.serial": "64",
+            "object.path": "alsa:acp:AG06AG03:4:playback:monitor_1",
+            "format.dsp": "32 bit float mono audio",
+            "node.id": "53",
+            "audio.channel": "FR",
+            "port.id": "1",
+            "port.name": "monitor_FR",
+            "port.direction": "out",
+            "port.monitor": "true",
+            "port.alias": "AG06/AG03:monitor_FR",
+            "port.group": "playback"
+        }
+    }
+)
+
+Some(
+    DictRef {
+        flags: Flags(0x0),
+        entries: {
+            "object.serial": "65",
+            "object.path": "alsa:acp:AG06AG03:0:capture:capture_0",
+            "format.dsp": "32 bit float mono audio",
+            "node.id": "57",
+            "audio.channel": "FL",
+            "port.id": "0",
+            "port.name": "capture_FL",
+            "port.direction": "out",
+            "port.physical": "true",
+            "port.terminal": "true",
+            "port.alias": "AG06/AG03:capture_FL",
+            "port.group": "capture"
+        }
+    }
+)
+
+Some(
+    DictRef {
+        flags: Flags(0x0),
+        entries: {
+            "object.serial": "66",
+            "object.path": "alsa:acp:AG06AG03:0:capture:capture_1",
+            "format.dsp": "32 bit float mono audio",
+            "node.id": "57",
+            "audio.channel": "FR",
+            "port.id": "1",
+            "port.name": "capture_FR",
+            "port.direction": "out",
+            "port.physical": "true",
+            "port.terminal": "true",
+            "port.alias": "AG06/AG03:capture_FR",
+            "port.group": "capture"
+        }
+    }
+)
+

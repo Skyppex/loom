@@ -1,0 +1,66 @@
+Some(
+    DictRef {
+        flags: Flags(0x0),
+        entries: {
+            "object.serial": "166019",
+            "module.id": "2",
+            "pipewire.protocol": "protocol-native",
+            "pipewire.sec.pid":"4944",
+            "pipewire.sec.uid": "1000",
+            "pipewire.sec.gid": "100",
+            "pipewire.sec.socket": "pipewire-0",
+            "application.name": "spotify",
+            "pipewire.access":"unrestricted"
+        }
+    }
+)
+
+Some(
+    DictRef {
+        flags: Flags(0x0),
+        entries: {
+            "object.serial": "166020",
+            "factory.id": "7",
+            "client.id": "71",
+            "client.api": "pipewire-pulse",
+            "application.name": "spotify",
+            "node.name": "spotify",
+            "media.class": "Stream/Output/Audio",
+            "media.role": "Music"
+        }
+    }
+)
+
+Some(
+    DictRef {
+        flags: Flags(0x0),
+        entries: {
+            "object.serial": "166021",
+            "object.path": "spotify:output_0",
+            "format.dsp": "32 bit float mono audio",
+            "node.id": "70",
+            "audio.channel": "FL",
+            "port.id": "0",
+            "port.name": "output_FL",
+            "port.direction": "out",
+            "port.alias": "spotify:output_FL",
+            "port.group": "stream.0"
+        }
+    }
+)
+
+Some(DictRef {
+    flags: Flags(0x0),
+    entries: {
+        "object.serial": "166022",
+        "object.path": "spotify:output_1",
+        "format.dsp": "32 bit float mono audio",
+        "node.id": "70",
+        "audio.channel": "FR",
+        "port.id": "1",
+        "port.name": "output_FR",
+        "port.direction": "out",
+        "port.alias": "spotify:output_FR",
+        "port.group": "stream.0"
+    }
+})
