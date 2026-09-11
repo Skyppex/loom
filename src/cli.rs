@@ -1,4 +1,6 @@
 use clap::Parser;
 
-#[derive(Debug, Clone, Copy, Parser)]
-pub struct Cli {}
+#[derive(Debug, Clone, Parser)]
+pub struct Cli {
+    pub device_name: Option<String>,
+}

@@ -1,0 +1,29 @@
+import { VolumeVisual } from "volume-visual.slint";
+import { Theme } from "theme.slint";
+
+export component StereoVisual {
+    in-out property <float> leftVolume;
+    in-out property <float> rightVolume;
+
+    HorizontalLayout {
+        alignment: center;
+        padding-top: 0.7rem;
+        padding-bottom: 0.7rem;
+
+        VolumeVisual {
+            percent: leftVolume;
+            width: 10px;
+        }
+
+        Rectangle {
+            background: Theme.background1;
+            width: 1px;
+            height: 100%;
+        }
+
+        VolumeVisual {
+            percent: rightVolume;
+            width: 10px;
+        }
+    }
+}

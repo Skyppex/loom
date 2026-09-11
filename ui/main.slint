@@ -1,0 +1,21 @@
+import { Switch, ComboBox, Slider } from "std-widgets.slint";
+import { Theme } from "theme.slint";
+import { Channel } from "channel.slint";
+import { AudioState } from "audio-state.slint";
+
+export { AudioState }
+export component MainWindow inherits Window {
+    title: "loom";
+    background: Theme.background0;
+
+    HorizontalLayout {
+        spacing: 1rem;
+        for i in 5: Channel {
+            name: "Channel " + i;
+        }
+
+        Rectangle {
+            horizontal-stretch: 1;
+        }
+    }
+}

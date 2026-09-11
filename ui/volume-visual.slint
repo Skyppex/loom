@@ -1,0 +1,50 @@
+import { Theme } from "theme.slint";
+
+export component VolumeVisual {
+    in property <float> percent;
+    property <float> yellowPercent: 0.7;
+    property <float> redPercent: 0.9;
+
+    volContainer := Rectangle {
+        background: Theme.background1;
+    }
+
+    Rectangle {
+        background: Theme.green;
+
+        x: volContainer.x;
+        y: Math.max(volContainer.y + (volContainer.height * (1 - percent)), volContainer.y + (volContainer.height * (1 - yellowPercent)));
+        width: volContainer.width;
+        height: Math.min(volContainer.height * percent, volContainer.height * yellowPercent);
+    }
+
+    Rectangle {
+        background: Theme.yellow;
+
+        x: volContainer.x;
+        y: Math.clamp(
+            volContainer.y + (volContainer.height * (1 - percent)),
+            volContainer.y + (volContainer.height * (1 - redPercent)),
+            volContainer.y + (volContainer.height * (1 - yellowPercent)));
+        width: volContainer.width;
+        height: Math.clamp(
+            volContainer.height * (percent - yellowPercent),
+            0,
+            volContainer.height * redPercent - volContainer.height * yellowPercent);
+    }
+
+    Rectangle {
+        background: Theme.red;
+
+        x: volContainer.x;
+        y: Math.clamp(
+            volContainer.y + (volContainer.height * (1 - percent)),
+            volContainer.y,
+            volContainer.y + (volContainer.height * (1 - redPercent)));
+        width: volContainer.width;
+        height: Math.clamp(
+            volContainer.height * (percent - redPercent),
+            0,
+            volContainer.height - (volContainer.height * redPercent));
+    }
+}

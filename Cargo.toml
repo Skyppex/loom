@@ -2,8 +2,14 @@
 name = "loom"
 version = "0.1.0"
 edition = "2024"
+build = "build.rs"
 
 [dependencies]
 clap = { version = "4.6.6", features = ["derive"] }
 cpal = { version = "0.18.2", features = ["pipewire"] }
+hound = "3.5.1"
 pipewire = { version = "0.10.1", features = ["v1_2_0"] }
+slint = { version = "1.17.1", features = ["backend-winit-wayland", "live-preview", "renderer-femtovg-wgpu"] }
+
+[build-dependencies]
+slint-build = "1.17"
