@@ -1,9 +1,9 @@
 mod audio;
 mod cli;
 
-use std::{error::Error, rc::Rc, time::Duration};
+use std::{collections::HashMap, error::Error, rc::Rc, time::Duration};
 
-use slint::{ModelRc, Timer, VecModel};
+use slint::{Model, ModelRc, Timer, VecModel};
 
 use crate::audio::AudioEngine;
 
@@ -16,28 +16,58 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     slint::set_xdg_app_id("loom")?;
 
-    let sources = Rc::new(VecModel::from(vec!["none".into()]));
+    let source_names = Rc::new(VecModel::from(vec!["none".into()]));
+    // let source_ids = Rc::new(VecModel::from(vec![]));
+    let sink_names = Rc::new(VecModel::from(vec!["none".into()]));
+    // let sink_ids = Rc::new(VecModel::from(vec![]));
+
     let audio_state = window.global::<AudioState>();
-    audio_state.set_sources(ModelRc::new(sources.clone()));
+    audio_state.set_source_names(ModelRc::new(source_names.clone()));
+    audio_state.set_sink_names(ModelRc::new(sink_names.clone()));
+
+    let mut audio_sources = HashMap::new();
+    let mut audio_sinks = HashMap::new();
 
     let timer = Timer::default();
 
     timer.start(slint::TimerMode::Repeated, Duration::from_millis(50), {
         move || {
-            println!("TICK");
             while let Some(event) = audio_engine.try_recv() {
                 match event {
                     audio::AudioEvent::SourceAdded(source) => {
                         println!("source added: {}", source);
-                        sources.push(source.nick.into());
+                        source_names.push(source.nick.clone().into());
+                        // source_ids.push(source.id);
+                        audio_sources.insert(source.id, (source, source_names.row_count() - 1));
                     }
-                    // audio::AudioEvent::SourceRemoved(source_id) => {
-                    //     println!("source removed: {}", source_id);
-                    //     sources.push(source_id);
-                    // }
-                    audio::AudioEvent::SourceRemoved(audio_source_id) => {}
-                    audio::AudioEvent::SinkAdded(audio_sink) => {}
-                    audio::AudioEvent::SinkRemoved(audio_sink_id) => {}
+                    audio::AudioEvent::SourceRemoved(audio_source_id) => {
+                        dbg!(&audio_source_id, &audio_sources);
+
+                        let Some((source, index)) = audio_sources.remove(&audio_source_id) else {
+                            eprintln!("source {} not found", audio_source_id);
+                            continue;
+                        };
+
+                        source_names.remove(index);
+                        // source_ids.remove(index);
+                        println!("source removed: {}", source);
+                    }
+                    audio::AudioEvent::SinkAdded(sink) => {
+                        println!("sink added: {}", sink);
+                        sink_names.push(sink.nick.clone().into());
+                        // sink_ids.push(sink.id);
+                        audio_sinks.insert(sink.id, (sink, sink_names.row_count() - 1));
+                    }
+                    audio::AudioEvent::SinkRemoved(audio_sink_id) => {
+                        let Some((sink, index)) = audio_sinks.remove(&audio_sink_id) else {
+                            eprintln!("sink {} not found", audio_sink_id);
+                            continue;
+                        };
+
+                        sink_names.remove(index);
+                        // sink_ids.remove(index);
+                        println!("sink removed: {}", sink);
+                    }
                 }
             }
         }

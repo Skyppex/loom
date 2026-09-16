@@ -18,7 +18,7 @@ export component Channel {
 
         HorizontalLayout {
             ComboBox {
-                model: AudioState.sources;
+                model: AudioState.source_names;
                 max-height: 2rem;
             }
         }
@@ -47,6 +47,13 @@ export component Channel {
                     stereo.leftVolume = value;
                     stereo.rightVolume = value;
                 }
+            }
+        }
+
+        HorizontalLayout {
+            ComboBox {
+                model: AudioState.sink_names;
+                max-height: 2rem;
             }
         }
     }

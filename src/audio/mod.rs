@@ -1,14 +1,16 @@
-use std::{error::Error, fmt::Display, mem::MaybeUninit, sync::mpsc, thread};
+use std::{
+    cell::RefCell, collections::HashSet, error::Error, fmt::Display, mem::MaybeUninit, rc::Rc,
+    sync::mpsc, thread,
+};
 
 use clap::Parser;
-use cpal::traits::{DeviceTrait, HostTrait};
 use pipewire::{
     properties::properties,
     spa::{self, pod::builder::Builder, utils::Direction},
     stream::StreamBox,
 };
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct AudioSourceId(u32);
 
 impl Display for AudioSourceId {
@@ -17,7 +19,7 @@ impl Display for AudioSourceId {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub struct AudioSource {
     pub id: AudioSourceId,
     pub nick: String,
@@ -26,11 +28,11 @@ pub struct AudioSource {
 
 impl Display for AudioSource {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{} - {}", self.nick, self.description)
+        write!(f, "{}: {} - {}", self.id, self.nick, self.description)
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct AudioSinkId(u32);
 
 impl Display for AudioSinkId {
@@ -39,11 +41,11 @@ impl Display for AudioSinkId {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub struct AudioSink {
-    id: AudioSinkId,
-    nick: String,
-    description: String,
+    pub id: AudioSinkId,
+    pub nick: String,
+    pub description: String,
 }
 
 impl Display for AudioSink {
@@ -239,10 +241,13 @@ fn audio_loop(
         &mut [pod],
     )?;
 
+    let added_ids = Rc::new(RefCell::new(HashSet::new()));
+
     let _listener = registry
         .add_listener_local()
         .global({
             let audio_events_tx = audio_events_tx.clone();
+            let added_ids = added_ids.clone();
 
             move |global| {
                 let Some(props) = global.props else {
@@ -264,6 +269,8 @@ fn audio_loop(
                         audio_events_tx
                             .send(AudioEvent::SourceAdded(source))
                             .expect("failed to send event over a channel");
+
+                        added_ids.borrow_mut().insert(global.id);
                     }
                     Some("Audio/Source") => {
                         let Some(nick) = props.get("node.nick") else {
@@ -283,36 +290,45 @@ fn audio_loop(
                         audio_events_tx
                             .send(AudioEvent::SourceAdded(source))
                             .expect("failed to send event over a channel");
+
+                        added_ids.borrow_mut().insert(global.id);
                     }
-                    // Some("Audio/Sink") => {
-                    //     println!("audio sink: {:?}", props.get("node.description"));
-                    //
-                    //     let Some(nick) = props.get("node.nick") else {
-                    //         return;
-                    //     };
-                    //
-                    //     let description = props.get("node.description");
-                    //
-                    //     let sink = AudioSink {
-                    //         id: AudioSinkId(global.id),
-                    //         nick: nick.to_owned(),
-                    //         description: description
-                    //             .map(|v| v.to_owned())
-                    //             .unwrap_or_else(|| nick.to_owned()),
-                    //     };
-                    //
-                    //     audio_events_tx
-                    //         .send(AudioEvent::SinkAdded(sink))
-                    //         .expect("failed to send event over a channel");
-                    // }
+                    Some("Audio/Sink") => {
+                        println!("audio sink: {:?}", props.get("node.description"));
+
+                        let Some(nick) = props.get("node.nick") else {
+                            return;
+                        };
+
+                        let description = props.get("node.description");
+
+                        let sink = AudioSink {
+                            id: AudioSinkId(global.id),
+                            nick: nick.to_owned(),
+                            description: description
+                                .map(|v| v.to_owned())
+                                .unwrap_or_else(|| nick.to_owned()),
+                        };
+
+                        audio_events_tx
+                            .send(AudioEvent::SinkAdded(sink))
+                            .expect("failed to send event over a channel");
+
+                        added_ids.borrow_mut().insert(global.id);
+                    }
                     _ => {}
                 }
             }
         })
         .global_remove({
             let audio_events_tx = audio_events_tx.clone();
+            let added_ids = added_ids.clone();
 
             move |id| {
+                if !added_ids.borrow().contains(&id) {
+                    return;
+                }
+
                 audio_events_tx
                     .send(AudioEvent::SourceRemoved(AudioSourceId(id)))
                     .expect("failed to send event over a channel");
