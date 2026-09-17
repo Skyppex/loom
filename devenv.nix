@@ -6,7 +6,6 @@
     alsa-lib
     gcc
     llvmPackages.libclang
-    slint-lsp
     fontconfig
     wayland
     libxkbcommon
@@ -21,11 +20,9 @@
   env.LIBCLANG_PATH = "${pkgs.llvmPackages.libclang.lib}/lib";
   env.BINDGEN_EXTRA_CLANG_ARGS = "-I${pkgs.glibc.dev}/include";
 
-  env.SLINT_LIVE_PREVIEW = 1;
-
   processes = {
     hot = {
-      exec = "cargo run --features slint/live-preview";
+      exec = "cargo run";
       watch = {
         paths = [./src];
         extensions = ["rs" "toml"];

@@ -54,7 +54,7 @@
         };
     in {
       packages = rec {
-        default = live;
+        default = release;
 
         live = pkgs.writeShellApplication {
           name = "loom-debug";
@@ -64,14 +64,12 @@
           ];
 
           text = ''
-            export SLINT_LIVE_PREVIEW=1
-            exec cargo run --features slint/live-preview "$@"
+            exec cargo run "$@"
           '';
         };
 
         debug = loomPackage {
           release = false;
-          debugFlags = ["--features" "slint/live-preview"];
         };
 
         release = loomPackage {release = true;};
