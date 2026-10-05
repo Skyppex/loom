@@ -3,12 +3,12 @@ use std::{
     sync::mpsc, thread,
 };
 
-use clap::Parser;
 use pipewire::{
     properties::properties,
     spa::{self, pod::builder::Builder, utils::Direction},
     stream::StreamBox,
 };
+use tracing::debug;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct AudioSourceId(u32);
@@ -66,11 +66,12 @@ pub struct AudioEngine {
 }
 
 impl AudioEngine {
-    pub fn new() -> Self {
+    pub fn new(cli: Cli) -> Self {
+        debug!("starting audio engine");
         let (audio_events_tx, audio_events_rx) = mpsc::channel::<AudioEvent>();
 
         thread::spawn(move || {
-            audio_loop(audio_events_tx);
+            let _ = audio_loop(audio_events_tx, cli);
         });
 
         Self { audio_events_rx }
@@ -90,9 +91,8 @@ struct Playback {
 
 fn audio_loop(
     audio_events_tx: mpsc::Sender<AudioEvent>,
+    cli: Cli,
 ) -> Result<(), Box<dyn Error + Send + Sync>> {
-    let cli = Cli::parse();
-
     // let host = cpal::default_host();
     //
     // let devices = host.devices()?;
@@ -173,17 +173,17 @@ fn audio_loop(
 
     let pod = unsafe { spa::pod::Pod::from_raw(pod_ptr) };
 
-    let mut reader = hound::WavReader::open("/tmp/speakers.wav")?;
+    // let mut reader = hound::WavReader::open("/tmp/speakers.wav")?;
 
-    let samples: Vec<f32> = reader
-        .samples::<i16>()
-        .map(|sample| sample.unwrap() as f32 / i16::MAX as f32)
-        .collect();
+    // let samples: Vec<f32> = reader
+    //     .samples::<i16>()
+    //     .map(|sample| sample.unwrap() as f32 / i16::MAX as f32)
+    //     .collect();
 
-    let playback = Playback {
-        samples,
-        position: 0,
-    };
+    // let playback = Playback {
+    //     samples,
+    //     position: 0,
+    // };
 
     let stream = StreamBox::new(
         &core,
@@ -191,48 +191,48 @@ fn audio_loop(
         properties,
     )?;
 
-    let _stream_listener = stream
-        .add_local_listener_with_user_data(playback)
-        .process(|stream, playback| {
-            let Some(mut buffer) = stream.dequeue_buffer() else {
-                return;
-            };
-
-            let datas = buffer.datas_mut();
-            let Some(data) = datas.first_mut() else {
-                return;
-            };
-
-            let count = {
-                let Some(slice) = data.data() else {
-                    return;
-                };
-
-                let output = unsafe {
-                    std::slice::from_raw_parts_mut(
-                        slice.as_mut_ptr() as *mut f32,
-                        slice.len() / std::mem::size_of::<f32>(),
-                    )
-                };
-
-                let remaining = playback.samples.len() - playback.position;
-                let count = remaining.min(output.len());
-
-                output[..count].copy_from_slice(
-                    &playback.samples[playback.position..playback.position + count],
-                );
-
-                output[count..].fill(0.0);
-                playback.position += count;
-                count
-            };
-
-            let chunk = data.chunk_mut();
-            *chunk.offset_mut() = 0;
-            *chunk.stride_mut() = (2 * std::mem::size_of::<f32>()) as i32;
-            *chunk.size_mut() = (count * std::mem::size_of::<f32>()) as u32;
-        })
-        .register()?;
+    // let _stream_listener = stream
+    //     .add_local_listener_with_user_data(playback)
+    //     .process(|stream, playback| {
+    //         let Some(mut buffer) = stream.dequeue_buffer() else {
+    //             return;
+    //         };
+    //
+    //         let datas = buffer.datas_mut();
+    //         let Some(data) = datas.first_mut() else {
+    //             return;
+    //         };
+    //
+    //         let count = {
+    //             let Some(slice) = data.data() else {
+    //                 return;
+    //             };
+    //
+    //             let output = unsafe {
+    //                 std::slice::from_raw_parts_mut(
+    //                     slice.as_mut_ptr() as *mut f32,
+    //                     slice.len() / std::mem::size_of::<f32>(),
+    //                 )
+    //             };
+    //
+    //             let remaining = playback.samples.len() - playback.position;
+    //             let count = remaining.min(output.len());
+    //
+    //             output[..count].copy_from_slice(
+    //                 &playback.samples[playback.position..playback.position + count],
+    //             );
+    //
+    //             output[count..].fill(0.0);
+    //             playback.position += count;
+    //             count
+    //         };
+    //
+    //         let chunk = data.chunk_mut();
+    //         *chunk.offset_mut() = 0;
+    //         *chunk.stride_mut() = (2 * std::mem::size_of::<f32>()) as i32;
+    //         *chunk.size_mut() = (count * std::mem::size_of::<f32>()) as u32;
+    //     })
+    //     .register()?;
 
     stream.connect(
         Direction::Output,
@@ -266,6 +266,8 @@ fn audio_loop(
                             description: name.to_owned(),
                         };
 
+                        tracing::info!("audio: source added: {}", &source);
+
                         audio_events_tx
                             .send(AudioEvent::SourceAdded(source))
                             .expect("failed to send event over a channel");
@@ -286,6 +288,8 @@ fn audio_loop(
                                 .map(|v| v.to_owned())
                                 .unwrap_or_else(|| nick.to_owned()),
                         };
+
+                        tracing::info!("audio: source added: {}", &source);
 
                         audio_events_tx
                             .send(AudioEvent::SourceAdded(source))
@@ -309,6 +313,8 @@ fn audio_loop(
                                 .map(|v| v.to_owned())
                                 .unwrap_or_else(|| nick.to_owned()),
                         };
+
+                        tracing::info!("audio: sink added: {}", &sink);
 
                         audio_events_tx
                             .send(AudioEvent::SinkAdded(sink))

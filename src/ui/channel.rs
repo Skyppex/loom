@@ -5,8 +5,8 @@ use iced::{Element, Length, Task};
 
 use crate::audio::AudioEvent;
 
-use super::stereo_visual;
 use super::Message;
+use super::stereo_visual;
 
 pub struct Channel {
     sources: Vec<String>,
@@ -34,6 +34,8 @@ impl Channel {
     /// Handle audio events coming from the PipeWire thread.
     /// Called by the parent `Loom` on each `Tick`.
     pub fn handle_event(&mut self, event: AudioEvent) {
+        tracing::info!("ui: handling audio event");
+
         match event {
             AudioEvent::SourceAdded(source) => {
                 println!("source added: {}", source);

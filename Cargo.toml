@@ -9,3 +9,5 @@ cpal = { version = "0.18.2", features = ["pipewire"] }
 hound = "3.5.1"
 pipewire = { version = "0.10.1", features = ["v1_2_0"] }
 iced = { version = "0.14.0", features = ["canvas", "tokio"] }
+tracing = { version = "0.1.44", features = ["log"] }
+tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt"] }
