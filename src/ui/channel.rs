@@ -15,7 +15,12 @@ pub struct Channel {
     sink_map: HashMap<String, String>,
     selected_source: Option<String>,
     selected_sink: Option<String>,
-    volume: f32,
+    levels: Levels,
+}
+
+pub struct Levels {
+    left_peak: f32,
+    right_peak: f32,
 }
 
 impl Channel {
@@ -27,7 +32,10 @@ impl Channel {
             sink_map: HashMap::new(),
             selected_source: None,
             selected_sink: None,
-            volume: 1.0,
+            levels: Levels {
+                left_peak: 1f32,
+                right_peak: 1f32,
+            },
         }
     }
 
@@ -38,7 +46,6 @@ impl Channel {
 
         match event {
             AudioEvent::SourceAdded(source) => {
-                println!("source added: {}", source);
                 let id_str = source.id.to_string();
                 let nick = source.nick.clone();
                 self.source_map.insert(id_str, nick.clone());
@@ -51,37 +58,32 @@ impl Channel {
                     if self.selected_source.as_ref() == Some(&nick) {
                         self.selected_source = None;
                     }
-                    println!("source removed: {}", nick);
                 } else if let Some(nick) = self.sink_map.remove(&id_str) {
                     // Workaround: audio module sends SourceRemoved for sinks as well
                     self.sinks.retain(|n| n != &nick);
                     if self.selected_sink.as_ref() == Some(&nick) {
                         self.selected_sink = None;
                     }
-                    println!("sink removed (via SourceRemoved): {}", nick);
                 } else {
                     eprintln!("source {} not found", id);
                 }
             }
             AudioEvent::SinkAdded(sink) => {
-                println!("sink added: {}", sink);
                 let id_str = sink.id.to_string();
                 let nick = sink.nick.clone();
                 self.sink_map.insert(id_str, nick.clone());
                 self.sinks.push(nick);
-            }
-            AudioEvent::SinkRemoved(id) => {
-                let id_str = id.to_string();
-                if let Some(nick) = self.sink_map.remove(&id_str) {
-                    self.sinks.retain(|n| n != &nick);
-                    if self.selected_sink.as_ref() == Some(&nick) {
-                        self.selected_sink = None;
-                    }
-                    println!("sink removed: {}", nick);
-                } else {
-                    eprintln!("sink {} not found", id);
-                }
-            }
+            } // AudioEvent::SinkRemoved(id) => {
+              //     let id_str = id.to_string();
+              //     if let Some(nick) = self.sink_map.remove(&id_str) {
+              //         self.sinks.retain(|n| n != &nick);
+              //         if self.selected_sink.as_ref() == Some(&nick) {
+              //             self.selected_sink = None;
+              //         }
+              //     } else {
+              //         eprintln!("sink {} not found", id);
+              //     }
+              // }
         }
     }
 
@@ -95,8 +97,8 @@ impl Channel {
             Message::SinkSelected(name) => {
                 self.selected_sink = Some(name);
             }
-            Message::VolumeChanged(v) => {
-                self.volume = v;
+            Message::LevelsChanged(left, right) => {
+                self.levels = Levels::new(left, right);
             }
             Message::Tick => {
                 // Tick is handled by the parent; nothing to do here
@@ -125,11 +127,11 @@ impl Channel {
         .placeholder("Select sink")
         .width(channel_width);
 
-        let slider = vertical_slider(0.0..=1.0, self.volume, Message::VolumeChanged)
+        let slider = vertical_slider(0.0..=1.0, 1f32, |v| Message::LevelsChanged(v, v))
             .height(200.0)
             .step(0.01);
 
-        let meter = stereo_visual::view(self.volume, self.volume);
+        let meter = stereo_visual::view(self.levels.left_peak, self.levels.right_peak);
 
         let controls = container(
             row![meter, slider]
@@ -143,5 +145,20 @@ impl Channel {
             .padding(20)
             .width(Length::Shrink)
             .into()
+    }
+}
+
+impl Levels {
+    pub fn new(left_peak: f32, right_peak: f32) -> Self {
+        Levels {
+            left_peak,
+            right_peak,
+        }
+    }
+}
+
+impl Default for Levels {
+    fn default() -> Self {
+        Levels::new(0f32, 0f32)
     }
 }

@@ -7,7 +7,6 @@ use std::time::Duration;
 use clap::Parser;
 use iced::widget::{column, row};
 use iced::{Element, Subscription, Task, time};
-use tracing::debug;
 
 use crate::audio::AudioEngine;
 use crate::cli::Cli;
@@ -23,7 +22,7 @@ pub enum Message {
     Tick,
     SourceSelected(String),
     SinkSelected(String),
-    VolumeChanged(f32),
+    LevelsChanged(f32, f32),
 }
 
 impl Loom {

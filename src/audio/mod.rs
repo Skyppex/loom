@@ -1,3 +1,5 @@
+mod models;
+
 use std::{
     cell::RefCell, collections::HashSet, error::Error, fmt::Display, mem::MaybeUninit, rc::Rc,
     sync::mpsc, thread,
@@ -19,7 +21,7 @@ impl Display for AudioSourceId {
     }
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct AudioSource {
     pub id: AudioSourceId,
     pub nick: String,
@@ -41,7 +43,7 @@ impl Display for AudioSinkId {
     }
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, Clone, ePartialEq, Eq)]
 pub struct AudioSink {
     pub id: AudioSinkId,
     pub nick: String,
@@ -58,7 +60,7 @@ pub enum AudioEvent {
     SourceAdded(AudioSource),
     SourceRemoved(AudioSourceId),
     SinkAdded(AudioSink),
-    SinkRemoved(AudioSinkId),
+    // SinkRemoved(AudioSinkId),
 }
 
 pub struct AudioEngine {
@@ -84,11 +86,6 @@ impl AudioEngine {
 
 use crate::cli::Cli;
 
-struct Playback {
-    samples: Vec<f32>,
-    position: usize,
-}
-
 fn audio_loop(
     audio_events_tx: mpsc::Sender<AudioEvent>,
     cli: Cli,
@@ -107,7 +104,7 @@ fn audio_loop(
     //
     // for device in devices {
     //     let is_default_input = device == default_input_device;
-    //     let is_default_output = device == default_output_device;
+    //     let is_default_output = deice == default_output_device;
     //     dbg!(
     //         device.to_string(),
     //         device.description()?,
@@ -191,51 +188,43 @@ fn audio_loop(
         properties,
     )?;
 
-    // let _stream_listener = stream
-    //     .add_local_listener_with_user_data(playback)
-    //     .process(|stream, playback| {
-    //         let Some(mut buffer) = stream.dequeue_buffer() else {
-    //             return;
-    //         };
-    //
-    //         let datas = buffer.datas_mut();
-    //         let Some(data) = datas.first_mut() else {
-    //             return;
-    //         };
-    //
-    //         let count = {
-    //             let Some(slice) = data.data() else {
-    //                 return;
-    //             };
-    //
-    //             let output = unsafe {
-    //                 std::slice::from_raw_parts_mut(
-    //                     slice.as_mut_ptr() as *mut f32,
-    //                     slice.len() / std::mem::size_of::<f32>(),
-    //                 )
-    //             };
-    //
-    //             let remaining = playback.samples.len() - playback.position;
-    //             let count = remaining.min(output.len());
-    //
-    //             output[..count].copy_from_slice(
-    //                 &playback.samples[playback.position..playback.position + count],
-    //             );
-    //
-    //             output[count..].fill(0.0);
-    //             playback.position += count;
-    //             count
-    //         };
-    //
-    //         let chunk = data.chunk_mut();
-    //         *chunk.offset_mut() = 0;
-    //         *chunk.stride_mut() = (2 * std::mem::size_of::<f32>()) as i32;
-    //         *chunk.size_mut() = (count * std::mem::size_of::<f32>()) as u32;
-    //     })
-    //     .register()?;
+    let _stream_listener = stream
+        .add_local_listener_with_user_data(())
+        .process(|stream, _| {
+            let Some(mut buffer) = stream.dequeue_buffer() else {
+                return;
+            };
+
+            let Some(data) = buffer.datas_mut().first_mut() else {
+                return;
+            };
+
+            let Some(samples) = data.data() else {
+                return;
+            };
+
+            let samples = unsafe {
+                std::slice::from_raw_parts(
+                    samples.as_ptr() as *const f32,
+                    samples.len() / std::mem::size_of::<f32>(),
+                )
+            };
+
+            let mut left_peak = 0f32;
+            let mut right_peak = 0f32;
+
+            for frame in samples.as_chunks::<2>().0 {
+                let left = frame[0];
+                let right = frame[1];
+
+                left_peak = left_peak.max(left.abs());
+                right_peak = right_peak.max(right.abs());
+            }
+        })
+        .register()?;
 
     stream.connect(
-        Direction::Output,
+        Direction::Input,
         None,
         pipewire::stream::StreamFlags::AUTOCONNECT,
         &mut [pod],
